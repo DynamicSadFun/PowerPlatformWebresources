@@ -2,98 +2,88 @@
   <head>
     <script src="./ClientGlobalContext.js.aspx"></script>
     <script language="javascript">
-      function SetReport() {
-        var id = qs("data");
-        if (!IsGuid(id)) {
-          var msg = "Please provide valid id in Web Resource properties dialog.";
-          msg += "\n\nMake sure that %7b from beginning and %7d from end are not present in the custom parameter of web resource properties."
-          alert(msg);
-          return;
-        }
-        var serverAndOrgUrl = getServerUrl();
-        var iframeSrc = serverAndOrgUrl + '/crmreports/viewer/viewer.aspx?action=run&id=%7b' + id + '%7d';
-        var report = document.createElement("iframe");
-        report.setAttribute('id', 'reportFrame');
-        report.setAttribute('name', 'reportFrame');
-        report.setAttribute('src', iframeSrc);
-        report.setAttribute('height', '100%');
-        report.setAttribute('width', '100%');
-        report.setAttribute('scrolling', 'auto');
-        report.setAttribute('frameborder', '0');
-        if (report.addEventListener) {
-          report.addEventListener('load', HideControls, true);
-        } else if (report.attachEvent) {
-          report.attachEvent('onload', HideControls);
-        }
-        var reportDiv = document.createElement("div");
-        reportDiv.setAttribute('height', '100%');
-        reportDiv.setAttribute('width', '100%');
-        reportDiv.appendChild(report);
-        document.body.appendChild(reportDiv);
+	function SetReport() {
+		var id = qs("data");
+		if (!IsGuid(id)) {
+			var msg = "Please provide valid id in Web Resource properties dialog.";
+			msg += "\n\nMake sure that %7b from beginning and %7d from end are not present in the custom parameter of web resource properties."
+			alert(msg);
+			return;
+		}
+		var serverAndOrgUrl = getServerUrl();
+		var iframeSrc = serverAndOrgUrl + '/crmreports/viewer/viewer.aspx?action=run&id=%7b' + id + '%7d';
+		var report = document.createElement("iframe");
+		report.id = "reportFrame";
+		report.name = "reportFrame";
+		report.src = iframeSrc;
+		report.height = "100%";
+		report.width = "100%";
+		report.scrolling = "auto";
+		report.frameBorder = "0";
 
-        function HideControls() {
-          menubar = report.contentWindow.document.getElementById('mnuBar1');
-          if (menubar != null) {
-            menubar.style.display = "none";
-          }
-          menubar2 = report.contentWindow.document.getElementById('crmMenuBarmnuBar');
-          if (menubar2 != null) {
-            menubar2.style.display = "none";
-          }
-          editFilter = report.contentWindow.document.getElementById('trEditFilter');
-          if (editFilter != null) {
-            editFilter.style.display = "none";
-          }
-          //Changing the layout for Report control to appear from top.
-          resultFrameDiv = report.contentWindow.document.getElementById('divResultFrame');
-          if (resultFrameDiv != null) {
-            resultFrameDiv.style.top = "0px";
-          }
-          //Since getElementsByClassName doesn't work in IE.
-          filterViewSpan = getByClass('viewer_td_FilterEditor');
-          if (filterViewSpan != null) {
-            filterViewSpan.style.top = "0px";
-          }
-        }
-        //Parses all the div tags
-        function getByClass(className) {
-          divTags = report.contentWindow.document.getElementsByTagName('div');
-          if (divTags == null || divTags == undefined) {
-            return null;
-          }
-          for (i = 0; i < divTags.length; i++) {
-            if (divTags[i].className == className) {
-              return divTags[i];
-            }
-          }
-          return null;
-        }
+		if (report.addEventListener) {
+			report.addEventListener('load', HideControls, true);
+		} else if (report.attachEvent) {
+			report.attachEvent('onload', HideControls);
+		}
+		var reportDiv = document.createElement("div");
+		reportDiv.style.height = "100%";
+		reportDiv.style.width = "100%";
+		reportDiv.appendChild(report);
+		document.body.appendChild(reportDiv);
 
-        function qs(search_for) {
-          var query = window.location.search.substring(1);
-          var parms = query.split('&');
-          for (var i = 0; i < parms.length; i++) {
-            var pos = parms[i].indexOf('=');
-            if (pos > 0 && search_for == parms[i].substring(0, pos)) {
-              return parms[i].substring(pos + 1);
-            }
-          }
-          return "";
-        }
+		function HideControls() {
+			var reportDoc = report.contentWindow.document;
+			var elementsToHide = [
+				"mnuBar1",
+				"crmMenuBarmnuBar",
+				"trEditFilter"
+			];
 
-        function getServerUrl() {
-          context = GetGlobalContext();
-          return context.getClientUrl();
-        }
+			elementsToHide.forEach(function(id) {
+				var element = reportDoc.getElementById(id);
+				if (element) element.style.display = "none";
+			});
 
-        function IsGuid(guid) {
-          if (guid != null) {
-            var guidRegEx = /^([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}$/;
-            return guidRegEx.test(guid);
-          }
-          return false;
-        }
-      }
+			var resultFrameDiv = reportDoc.getElementById("divResultFrame");
+			if (resultFrameDiv) resultFrameDiv.style.top = "0px";
+
+			var filterViewSpan = getByClass("viewer_td_FilterEditor");
+			if (filterViewSpan) filterViewSpan.style.top = "0px";
+		}
+		//Parses all the div tags
+		function getByClass(className) {
+			divTags = report.contentWindow.document.getElementsByTagName('div');
+			for (var i = 0; i < divTags.length; i++) {
+				if (divTags[i].className === className) return divTags[i];
+			}
+			return null;
+		}
+
+		function qs(search_for) {
+			var query = window.location.search.substring(1);
+			var parms = query.split('&');
+			for (var i = 0; i < parms.length; i++) {
+				var pos = parms[i].indexOf('=');
+				if (pos > 0 && search_for == parms[i].substring(0, pos)) {
+					return parms[i].substring(pos + 1);
+				}
+			}
+			return "";
+		}
+
+		function getServerUrl() {
+			return GetGlobalContext().getClientUrl();
+		}
+
+		function IsGuid(guid) {
+			if (guid != null) {
+				var guidRegEx = /^([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}$/;
+				return guidRegEx.test(guid);
+			}
+			return false;
+		}
+	}	  
     </script>
     <meta>
     <style type="text/css"></style>
